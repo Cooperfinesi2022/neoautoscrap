@@ -7,12 +7,10 @@ logger = logging.getLogger(__name__)
 
 def load_cars(cars_list):
     logger.info("INICIO DE CARGA DE AUTOS A MySQL")
-
     db_host     = os.getenv("DB_HOST", "localhost")
     db_user     = os.getenv("DB_USER", "root")
     db_password = os.getenv("DB_PASS", "root")
     db_name     = os.getenv("DB_NAME", "neoauto")
-
     try:
         conn = mysql.connector.connect(
             host=db_host,
@@ -21,13 +19,11 @@ def load_cars(cars_list):
             database=db_name
         )
         cursor = conn.cursor()
-
         cursor.execute(
             f"CREATE DATABASE IF NOT EXISTS `{db_name}` "
             "CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
         )
         cursor.execute(f"USE `{db_name}`;")
-
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS autos (
                 id           INT           AUTO_INCREMENT PRIMARY KEY,
@@ -42,13 +38,11 @@ def load_cars(cars_list):
                 UNIQUE KEY (enlace)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         """)
-
         insert_q = """
             INSERT IGNORE INTO autos 
               (titulo, precio, kilometraje, ubicacion, combustible, transmision, enlace)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        inserted = 0
         for car in cars_list:
             cursor.execute(
                 insert_q,
@@ -62,11 +56,8 @@ def load_cars(cars_list):
                     car["enlace"]
                 )
             )
-            if cursor.rowcount == 1:
-                inserted += 1
-
         conn.commit()
-    except mysql.connector.Error as err:
+    except mysql.connector.Error:
         pass
     finally:
         if 'cursor' in locals():
